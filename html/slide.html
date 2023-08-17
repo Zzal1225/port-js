@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        li {
+            list-style: none;
+        }
+
+        .container {
+            width: 700px;
+            margin: 0 auto;
+        }
+
+        .slide_wrapper {
+            position: relative;
+            width: 660px;
+            margin: 0 auto;
+
+            overflow: hidden;
+            padding-top: 200px;
+            margin-top: 15vw;
+        }
+
+        .slides {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 200px;
+            width: 100%;
+        }
+
+        .slides.animated {
+            transition: 0.5s ease-out;
+        }
+
+        .slides li {
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            position: absolute;
+            text-align: center;
+            color: white;
+            font-size: 1.5vw;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .controls span {
+            cursor: pointer;
+            background-color: #2b2b2b;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            display: inline-block;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: 100%;
+                padding: 0 20px;
+                box-sizing: border-box;
+            }
+
+            .slide_wrapper {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="slide_wrapper">
+            <ul class="slides">
+                <li style="background-color: #0ECC68;">slide 01</li>
+                <li style="background-color: #FF9CBE;">slide 02</li>
+                <li style="background-color: #9BD8F9;">slide 03</li>
+                <li style="background-color: #EC6083;">slide 04</li>
+                <li style="background-color: #3586FF;">slide 05</li>
+            </ul>
+        </div>
+        <p class="controls">
+            <span class="prev">prev</span>
+            <span class="next">next</span>
+        </p>
+    </div>
+
+    <script>
+        var slides = document.querySelector('.slides'),
+            slide = document.querySelectorAll('.slides li'),
+            currentIdx = 0, // 초기 슬라이드 인덱스 설정
+            slideCount = slide.length,
+            slideWidth = 200,
+            slideMargin = 30,
+            moveAmt = slideWidth + slideMargin,
+            maxSlides = 3,
+            responsiveMargin = 20,
+            newslide,
+            newslideWidth,
+            prevBtn = document.querySelector('.controls .prev'),
+            nextBtn = document.querySelector('.controls .next');
+
+        newslideWidth = slideWidth;
+
+
+        // 복사본 생성하기
+        for (var i = 0; i < maxSlides; i++) {
+            var cloneSlide = slide[i].cloneNode(true);
+            cloneSlide.classList.add('clone');
+            slides.appendChild(cloneSlide);
+        }
+        for (var i = slideCount - 1; i >= 0; i--) {
+            var cloneSlide = slide[i].cloneNode(true);
+            cloneSlide.classList.add('clone');
+            slides.prepend(cloneSlide);
+        }
+
+        //가로배열하기
+        function slideLayout(sw, sm) {
+            newslide = document.querySelectorAll('.slides li');
+            moveAmt = sw + sm;
+            newslide.forEach(function (item, index) {
+                item.style.left = moveAmt * index + 'px';
+                item.style.width = sw + 'px';
+
+            });
+
+        }
+        slideLayout(slideWidth, slideMargin);
+
+        //중앙배치하기
+        function setSlide() {
+            var ulMoveAmt = -slideCount * moveAmt + 'px';
+            slides.style.transform = 'translateX(' + ulMoveAmt + ')';
+            slides.classList.add('animated');
+        }
+        setSlide();
+
+        //좌우버튼으로 이동하기
+        nextBtn.addEventListener('click', function () {
+            moveSlide(currentIdx + 1);
+        })
+        prevBtn.addEventListener('click', function () {
+            moveSlide(currentIdx - 1);
+        })
+
+        //moveslide 함수
+        function moveSlide(num) {
+            slides.style.left = moveAmt * -num + 'px';
+            currentIdx = num;
+
+            if (currentIdx == slideCount || currentIdx == -slideCount) {
+                setTimeout(function () {
+                    slides.classList.remove('animated');
+                    slides.style.left = '0px';
+                    currentIdx = 0;
+                }, 500);
+
+                setTimeout(function () {
+                    slides.classList.add('animated');
+                }, 600);
+            }
+        }
+
+        // 자동슬라이드
+        var timer = undefined;
+        var slideWrapper = document.querySelector('.slide_wrapper');
+
+        function autoSlide() {
+            if (timer == undefined) {
+                timer = setInterval(function () {
+                    moveSlide(currentIdx + 1);
+                }, 3000);
+            }
+        }
+        autoSlide();
+
+        function stopSlide() {
+            clearInterval(timer);
+            timer = undefined;
+        }
+
+        slideWrapper.addEventListener('mouseenter', function () {
+            stopSlide();
+        })
+        slideWrapper.addEventListener('mouseleave', function () {
+            autoSlide();
+        })
+
+        //반응형 슬라이드
+        window.addEventListener('resize', function () {
+            var currentWidth = document.querySelector('body').offsetWidth;
+
+            if (currentWidth < 700) {
+                var slidesWidth = slides.offsetWidth;
+                newslideWidth = (slidesWidth - (responsiveMargin * maxSlides - 1)) / 3;
+                responsiveMargin = 20;
+            } else {
+                newslideWidth = slideWidth;
+                responsiveMargin = slideMargin;
+            }
+            if (currentWidth <= 500) {
+                var newslideWidth = slides.offsetWidth;
+                responsiveMargin = 0;
+            }
+            slideLayout(newslideWidth, responsiveMargin);
+            setSlide();
+            console.log(newslideWidth);
+        });
+    </script>
+</body>
+
+</html>
